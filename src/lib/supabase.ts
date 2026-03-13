@@ -1,9 +1,26 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Lazy initialization to avoid build-time errors when env vars aren't set
+function createSupabaseClient() {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error(
+      "Missing Supabase environment variables. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY."
+    );
+  }
+  return createClient(supabaseUrl, supabaseAnonKey);
+}
+
+let _client: ReturnType<typeof createClient> | null = null;
+
+export function getSupabase() {
+  if (!_client) {
+    _client = createSupabaseClient();
+  }
+  return _client;
+}
 
 // Types
 export type ThreatType =
