@@ -15,7 +15,7 @@ function createSupabaseClient() {
 
 let _client: ReturnType<typeof createClient> | null = null;
 
-export function getSupabase() {
+export function getSupabase(): ReturnType<typeof createClient> {
   if (!_client) {
     _client = createSupabaseClient();
   }
