@@ -13,9 +13,11 @@ function createSupabaseClient() {
   return createClient(supabaseUrl, supabaseAnonKey);
 }
 
-let _client: ReturnType<typeof createClient> | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _client: any = null;
 
-export function getSupabase(): ReturnType<typeof createClient> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function getSupabase(): any {
   if (!_client) {
     _client = createSupabaseClient();
   }
