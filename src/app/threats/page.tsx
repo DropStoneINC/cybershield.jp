@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import {
@@ -168,8 +168,28 @@ export default function ThreatsPage() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<ThreatType | "all">("all");
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [threats, setThreats] = useState<ThreatReport[]>(demoThreats);
+  const [loading, setLoading] = useState(true);
 
-  const filtered = demoThreats.filter((t) => {
+  useEffect(() => {
+    async function fetchThreats() {
+      try {
+        const res = await fetch("/api/report");
+        const data = await res.json();
+        if (data.threats && data.threats.length > 0) {
+          // APIデータとデモデータを結合（APIデータを先に表示）
+          setThreats([...data.threats, ...demoThreats]);
+        }
+      } catch (err) {
+        console.error("Failed to fetch threats:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchThreats();
+  }, []);
+
+  const filtered = threats.filter((t) => {
     if (typeFilter !== "all" && t.threat_type !== typeFilter) return false;
     if (
       search &&
@@ -202,20 +222,20 @@ export default function ThreatsPage() {
           {/* Stats bar */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
             {[
-              { label: "総通報数", value: demoThreats.length, color: "text-jcs-accent" },
+              { label: "総通報数", value: threats.length, color: "text-jcs-accent" },
               {
                 label: "確認済み",
-                value: demoThreats.filter((t) => t.status === "confirmed").length,
+                value: threats.filter((t) => t.status === "confirmed").length,
                 color: "text-jcs-green",
               },
               {
                 label: "分析中",
-                value: demoThreats.filter((t) => t.status === "analyzing").length,
+                value: threats.filter((t) => t.status === "analyzing" || t.status === "pending").length,
                 color: "text-yellow-400",
               },
               {
                 label: "危険度:高",
-                value: demoThreats.filter(
+                value: threats.filter(
                   (t) => t.severity === "critical" || t.severity === "high"
                 ).length,
                 color: "text-red-400",

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=400">
+  <title>JCS - サイバー脅威通報</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- ヘッダー -->
+  <header class="header">
+    <div class="header-brand">
+      <img src="icons/icon48.png" alt="JCS" class="header-logo">
+      <div>
+        <h1 class="header-title">Japan Cyber Shield</h1>
+        <p class="header-subtitle">ワンクリック通報</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main id="main-content">
+    <!-- ステップ1: 脅威タイプ選択 -->
+    <div id="step-type" class="step active">
+      <p class="step-label">どんな脅威ですか？</p>
+      <div class="type-grid">
+        <button class="type-btn" data-type="phishing_email" title="フィッシングメール">
+          <span class="type-icon">📧</span>
+          <span class="type-name">フィッシング<br>メール</span>
+        </button>
+        <button class="type-btn" data-type="scam_sms" title="詐欺SMS">
+          <span class="type-icon">📱</span>
+          <span class="type-name">詐欺SMS</span>
+        </button>
+        <button class="type-btn" data-type="fake_site" title="偽サイト">
+          <span class="type-icon">🌐</span>
+          <span class="type-name">偽サイト</span>
+        </button>
+        <button class="type-btn" data-type="suspicious_url" title="不審なURL">
+          <span class="type-icon">🔗</span>
+          <span class="type-name">不審URL</span>
+        </button>
+        <button class="type-btn" data-type="malware" title="マルウェア">
+          <span class="type-icon">🦠</span>
+          <span class="type-name">マルウェア</span>
+        </button>
+        <button class="type-btn" data-type="other" title="その他">
+          <span class="type-icon">⚠️</span>
+          <span class="type-name">その他</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ステップ2: 詳細入力 -->
+    <div id="step-detail" class="step">
+      <button id="back-btn" class="back-btn">← 戻る</button>
+      <p class="step-label" id="detail-label">詳細を入力</p>
+
+      <div class="form-group">
+        <label for="title">タイトル <span class="required">*</span></label>
+        <input type="text" id="title" placeholder="例: Amazonを装った不審なメール" maxlength="100">
+      </div>
+
+      <div class="form-group">
+        <label for="description">説明 <span class="required">*</span></label>
+        <textarea id="description" rows="3" placeholder="どんな内容でしたか？気づいた点を教えてください"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="url">関連URL</label>
+        <input type="url" id="url" placeholder="自動入力されます" readonly>
+      </div>
+
+      <div class="form-group collapsible">
+        <button id="toggle-optional" class="toggle-btn">▶ 通報者情報（任意）</button>
+        <div id="optional-fields" class="optional-hidden">
+          <div class="form-group">
+            <label for="reporter_name">お名前</label>
+            <input type="text" id="reporter_name" placeholder="匿名でも通報できます">
+          </div>
+          <div class="form-group">
+            <label for="reporter_email">メール</label>
+            <input type="email" id="reporter_email" placeholder="結果を受け取りたい場合">
+          </div>
+        </div>
+      </div>
+
+      <button id="submit-btn" class="submit-btn">
+        🛡️ 通報する
+      </button>
+    </div>
+
+    <!-- ステップ3: 完了 -->
+    <div id="step-done" class="step">
+      <div class="done-content">
+        <div class="done-icon">✅</div>
+        <h2 class="done-title">通報完了！</h2>
+        <p class="done-message">ご協力ありがとうございます。<br>AI分析を開始しました。</p>
+        <div class="done-stats" id="done-stats"></div>
+        <button id="report-another" class="submit-btn" style="margin-top: 12px;">もう一件通報する</button>
+        <a href="https://cybershield-jp-drop-stone-ai.vercel.app/threats" target="_blank" class="link-btn">
+          📊 脅威データベースを見る
+        </a>
+      </div>
+    </div>
+
+    <!-- エラー表示 -->
+    <div id="step-error" class="step">
+      <div class="done-content">
+        <div class="done-icon">❌</div>
+        <h2 class="done-title">送信に失敗しました</h2>
+        <p class="done-message" id="error-message">接続を確認してもう一度お試しください。</p>
+        <button id="retry-btn" class="submit-btn" style="margin-top: 12px;">再試行</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- フッター -->
+  <footer class="footer">
+    <a href="https://cybershield-jp-drop-stone-ai.vercel.app" target="_blank">cybershield.jp</a>
+    <span>|</span>
+    <span id="report-count">0件の通報</span>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>

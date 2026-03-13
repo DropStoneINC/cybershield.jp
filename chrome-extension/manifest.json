@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "Japan Cyber Shield - ワンクリック通報",
+  "short_name": "JCS通報",
+  "version": "1.0.0",
+  "description": "怪しいサイト・フィッシングメール・詐欺SMSをワンクリックで通報。日本のサイバー防衛に貢献しましょう。",
+  "permissions": [
+    "activeTab",
+    "contextMenus",
+    "storage"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "JCS - サイバー脅威を通報"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "host_permissions": [
+    "https://cybershield-jp-drop-stone-ai.vercel.app/*"
+  ]
+}

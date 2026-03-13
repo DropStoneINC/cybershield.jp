@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>JCS Icon Generator</title>
+  <style>
+    body {
+      font-family: -apple-system, sans-serif;
+      background: #0a0e1a;
+      color: #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px;
+      min-height: 100vh;
+    }
+    h1 { color: #22c55e; margin-bottom: 8px; }
+    p { color: #94a3b8; margin-bottom: 24px; }
+    #drop-zone {
+      width: 300px;
+      height: 200px;
+      border: 2px dashed #475569;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      margin-bottom: 24px;
+    }
+    #drop-zone:hover, #drop-zone.dragover {
+      border-color: #22c55e;
+    }
+    #drop-zone span { color: #64748b; font-size: 14px; }
+    .previews {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .preview-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .preview-item canvas {
+      border: 1px solid #334155;
+      border-radius: 8px;
+      background: #1e293b;
+    }
+    .preview-item span { font-size: 12px; color: #94a3b8; }
+    a.download {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 6px 14px;
+      background: #22c55e;
+      color: #0a0e1a;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    a.download:hover { filter: brightness(1.1); }
+    input[type="file"] { display: none; }
+  </style>
+</head>
+<body>
+  <h1>🛡️ JCS Icon Generator</h1>
+  <p>ロゴ画像をドロップまたはクリックして、Chrome拡張用アイコンを生成</p>
+
+  <div id="drop-zone" onclick="document.getElementById('file-input').click()">
+    <span>画像をドロップ or クリック</span>
+  </div>
+  <input type="file" id="file-input" accept="image/*">
+
+  <div class="previews" id="previews"></div>
+
+  <script>
+    const sizes = [16, 48, 128];
+    const dropZone = document.getElementById("drop-zone");
+    const fileInput = document.getElementById("file-input");
+    const previews = document.getElementById("previews");
+
+    dropZone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropZone.classList.add("dragover");
+    });
+    dropZone.addEventListener("dragleave", () => {
+      dropZone.classList.remove("dragover");
+    });
+    dropZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropZone.classList.remove("dragover");
+      if (e.dataTransfer.files[0]) processImage(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener("change", () => {
+      if (fileInput.files[0]) processImage(fileInput.files[0]);
+    });
+
+    function processImage(file) {
+      const img = new Image();
+      img.onload = () => {
+        previews.innerHTML = "";
+        sizes.forEach((size) => {
+          const canvas = document.createElement("canvas");
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext("2d");
+
+          // 高品質リサイズ
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
+
+          // 正方形にクロップ（中央寄せ）
+          const minDim = Math.min(img.width, img.height);
+          const sx = (img.width - minDim) / 2;
+          const sy = (img.height - minDim) / 2;
+          ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, size, size);
+
+          const item = document.createElement("div");
+          item.className = "preview-item";
+          item.appendChild(canvas);
+
+          const label = document.createElement("span");
+          label.textContent = `${size}x${size}px`;
+          item.appendChild(label);
+
+          const link = document.createElement("a");
+          link.className = "download";
+          link.textContent = `icon-${size}.png をダウンロード`;
+          link.download = `icon-${size}.png`;
+          link.href = canvas.toDataURL("image/png");
+          item.appendChild(link);
+
+          previews.appendChild(item);
+        });
+      };
+      img.src = URL.createObjectURL(file);
+    }
+  </script>
+</body>
+</html>
