@@ -27,10 +27,13 @@ export async function POST(request: NextRequest) {
       from_email,
       from_name,
       subject,
+      original_subject,
       body_text,
       body_html,
       received_at,
       forwarded_from,
+      reporter_email,
+      reporter_name,
       urls_found,
     } = body;
 
@@ -41,15 +44,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // メール内容から脅威タイプを推定
-    const threatType = detectThreatType(subject, body_text || "");
+    // メール内容から脅威タイプを推定（オリジナル件名優先）
+    const effectiveSubject = original_subject || subject;
+    const threatType = detectThreatType(effectiveSubject, body_text || "");
 
-    // タイトルを整形
-    const title = subject.startsWith("Fwd:")
-      ? subject.replace(/^Fwd:\s*/, "【転送】")
-      : subject.startsWith("Fw:")
-      ? subject.replace(/^Fw:\s*/, "【転送】")
-      : subject;
+    // タイトルを整形（Google Groupプレフィックス除去済みのoriginal_subject優先）
+    const rawTitle = effectiveSubject;
+    const title = rawTitle.startsWith("Fwd:")
+      ? rawTitle.replace(/^Fwd:\s*/, "【転送】")
+      : rawTitle.startsWith("Fw:")
+      ? rawTitle.replace(/^Fw:\s*/, "【転送】")
+      : rawTitle;
 
     // 説明文を構築
     const descriptionParts = [];
@@ -70,6 +75,12 @@ export async function POST(request: NextRequest) {
 
     const description = descriptionParts.join("\n\n");
 
+    // 通報者情報（Apps Scriptが特定したreporter_emailを優先）
+    const effectiveReporterEmail = reporter_email || from_email;
+    const effectiveReporterName = reporter_name || from_name || null;
+
+    console.log(`[Email Report] reporter_email=${effectiveReporterEmail}, email_subject=${effectiveSubject}, from=${from_email}`);
+
     // Supabaseに保存
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase as any)
@@ -80,9 +91,9 @@ export async function POST(request: NextRequest) {
         description: description,
         url: urls_found?.[0] || null,
         email_from: forwarded_from || from_email,
-        email_subject: subject,
-        reporter_name: from_name || null,
-        reporter_email: from_email,
+        email_subject: effectiveSubject,
+        reporter_name: effectiveReporterName,
+        reporter_email: effectiveReporterEmail,
         severity: "medium",
         status: "pending",
       })
