@@ -27,67 +27,67 @@ const demoThreats: ThreatReport[] = [
     id: "1",
     created_at: "2026-03-13T10:30:00Z",
     threat_type: "phishing_email",
-    title: "Amazonã¢ã«ã¦ã³ãåæ­¢ãè£ã£ããã£ãã·ã³ã°ã¡ã¼ã«",
+    title: "Amazonアカウント停止を装ったフィッシングメール",
     description:
-      "Amazonã«ã¹ã¿ãã¼ãµã¼ãã¹ãåä¹ããã¢ã«ã¦ã³ããåæ­¢ãããã¨å½ãããªã³ã¯åã§åäººæå ±ãå¥åãããæå£ã",
+      "Amazonカスタマーサービスを名乗り、アカウントが停止されたと偽る。リンク先で個人情報を入力させる手口。",
     url: "https://amaz0n-security.example.com/verify",
     email_from: "service@amaz0n-alert.com",
-    email_subject: "ãç·æ¥ããå®¢æ§ã®ã¢ã«ã¦ã³ããåæ­¢ããã¾ãã",
+    email_subject: "【緊急】お客様のアカウントが停止されました",
     severity: "high",
     status: "confirmed",
     ai_analysis:
-      "æ¢ç¥ã®ãã£ãã·ã³ã°ãã¿ã¼ã³ããã¡ã¤ã³ã¯Amazonã®æ­£è¦ãã¡ã¤ã³ã§ã¯ãªããé¡ä¼¼æ»æãéå»24æéã§50ä»¶ä»¥ä¸å ±åã",
+      "既知のフィッシングパターン。ドメインはAmazonの正規ドメインではない。類似攻撃が過去24時間で50件以上報告。",
     upvotes: 47,
   },
   {
     id: "2",
     created_at: "2026-03-13T09:15:00Z",
     threat_type: "scam_sms",
-    title: "å®éä¸å¨éç¥ãè£ã£ãè©æ¬ºSMS",
+    title: "宅配不在通知を装った詐欺SMS",
     description:
-      "ã¤ããéè¼¸ãåä¹ããä¸å¨ã®ããè·ç©ãæã¡å¸°ã£ãã¨ããSMSããªã³ã¯åã§ã¯ã¬ã¸ããã«ã¼ãæå ±ãæ±ããã",
+      "ヤマト運輸を名乗り、不在のため荷物を持ち帰ったとするSMS。リンク先でクレジットカード情報を求める。",
     url: "https://yamato-delivery.example.net/track",
     severity: "high",
     status: "confirmed",
     ai_analysis:
-      "è©æ¬ºSMSã®å¸åãã¿ã¼ã³ãç­ç¸®URLã¯å½ã®ãã©ãã­ã³ã°ãã¼ã¸ã«èªå°ã",
+      "詐欺SMSの典型パターン。短縮URLは偽のトラッキングページに誘導。",
     upvotes: 32,
   },
   {
     id: "3",
     created_at: "2026-03-13T08:00:00Z",
     threat_type: "fake_site",
-    title: "å½ã®Apple IDã­ã°ã¤ã³ãã¼ã¸",
+    title: "偽のApple IDログインページ",
     description:
-      "Appleå¬å¼ãµã¤ãã«é·ä¼¼ããå½ã®ã­ã°ã¤ã³ãã¼ã¸ãApple IDã¨ãã¹ã¯ã¼ããçªåããã",
+      "Apple公式サイトに酷似した偽のログインページ。Apple IDとパスワードを窃取する。",
     url: "https://apple-id-verify.example.org",
     severity: "critical",
     status: "confirmed",
     ai_analysis:
-      "SSLè¨¼ææ¸ãèªå·±ç½²åãWHOISã¯å¿åç»é²ããã¼ã¸æ§é ã¯Appleå¬å¼ãæ¨¡å£ã",
+      "SSL証明書が自己署名。WHOISは匿名登録。ページ構造はApple公式を模倣。",
     upvotes: 89,
   },
   {
     id: "4",
     created_at: "2026-03-12T22:00:00Z",
     threat_type: "malware",
-    title: "è«æ±æ¸ãè£ã£ããã«ã¦ã§ã¢æ·»ä»ã¡ã¼ã«",
+    title: "請求書を装ったマルウェア添付メール",
     description:
-      "åå¼åãè£ããExcelãã¡ã¤ã«ãæ·»ä»ããã¯ã­å®è¡ã§ã©ã³ãµã ã¦ã§ã¢ããã¦ã³ã­ã¼ãã",
+      "取引先を装い、Excelファイルを添付。マクロ実行でランサムウェアをダウンロード。",
     email_from: "billing@fake-company.example.jp",
-    email_subject: "2æåº¦è«æ±æ¸éä»ã®ä»¶",
+    email_subject: "2月度請求書送付の件",
     severity: "critical",
     status: "analyzing",
-    ai_analysis: "æ·»ä»ãã¡ã¤ã«ã«VBAãã¯ã­æ¤åºãC2ãµã¼ãã¼ã¸ã®éä¿¡ãç¢ºèªã",
+    ai_analysis: "添付ファイルにVBAマクロ検出。C2サーバーへの通信を確認。",
     upvotes: 15,
   },
   {
     id: "5",
     created_at: "2026-03-12T18:30:00Z",
     threat_type: "suspicious_url",
-    title: "SNSä¸ã®ä¸å¯©ãªç­ç¸®URL",
+    title: "SNS上の不審な短縮URL",
     description:
-      "Twitter/Xã§æ¡æ£ä¸­ã®ç­ç¸®URLãã¯ãªãã¯ããã¨è¤æ°ã®ãªãã¤ã¬ã¯ããçµã¦ä¸å¯©ãªãã¼ã¸ã«é·ç§»ã",
+      "Twitter/Xで拡散中の短縮URL。クリックすると複数のリダイレクトを経て不審なページに遷移。",
     url: "https://bit.ly/example123",
     severity: "medium",
     status: "pending",
@@ -97,16 +97,16 @@ const demoThreats: ThreatReport[] = [
     id: "6",
     created_at: "2026-03-12T15:00:00Z",
     threat_type: "phishing_email",
-    title: "ä¸äºä½åéè¡ãè£ã£ãèªè¨¼ã¡ã¼ã«",
+    title: "三井住友銀行を装った認証メール",
     description:
-      "å£åº§ã®æ¬äººç¢ºèªãå¿è¦ã¨ãã¦ãå½ã®ã­ã°ã¤ã³ãã¼ã¸ã«èªå°ããã¡ã¼ã«ã",
+      "口座の本人確認が必要として、偽のログインページに誘導するメール。",
     url: "https://smbc-auth.example.com",
     email_from: "info@smbc-notice.example.com",
-    email_subject: "ãéè¦ãæ¬äººç¢ºèªã®ãé¡ã",
+    email_subject: "【重要】本人確認のお願い",
     severity: "high",
     status: "confirmed",
     ai_analysis:
-      "éè¡ãã£ãã·ã³ã°ã®å¸åãã¿ã¼ã³ãæ­£è¦ãã¡ã¤ã³ã¨ã®ä¸æå­éãã",
+      "銀行フィッシングの典型パターン。正規ドメインとの一文字違い。",
     upvotes: 61,
   },
 ];
@@ -121,12 +121,12 @@ const typeIcons: Record<ThreatType, React.ElementType> = {
 };
 
 const typeLabels: Record<ThreatType, string> = {
-  phishing_email: "ãã£ãã·ã³ã°ã¡ã¼ã«",
-  scam_sms: "è©æ¬ºSMS",
-  fake_site: "å½ãµã¤ã",
-  suspicious_url: "ä¸å¯©URL",
-  malware: "ãã«ã¦ã§ã¢",
-  other: "ãã®ä»",
+  phishing_email: "フィッシングメール",
+  scam_sms: "詐欺SMS",
+  fake_site: "偽サイト",
+  suspicious_url: "不審URL",
+  malware: "マルウェア",
+  other: "その他",
 };
 
 const severityColors: Record<ThreatSeverity, string> = {
@@ -137,10 +137,10 @@ const severityColors: Record<ThreatSeverity, string> = {
 };
 
 const severityLabels: Record<ThreatSeverity, string> = {
-  low: "ä½",
-  medium: "ä¸­",
-  high: "é«",
-  critical: "å±éº",
+  low: "低",
+  medium: "中",
+  high: "高",
+  critical: "危険",
 };
 
 const statusIcons: Record<ThreatStatus, React.ElementType> = {
@@ -151,10 +151,10 @@ const statusIcons: Record<ThreatStatus, React.ElementType> = {
 };
 
 const statusLabels: Record<ThreatStatus, string> = {
-  pending: "å¯©æ»å¾ã¡",
-  analyzing: "åæä¸­",
-  confirmed: "ç¢ºèªæ¸ã¿",
-  false_positive: "èª¤å ±",
+  pending: "審査待ち",
+  analyzing: "分析中",
+  confirmed: "確認済み",
+  false_positive: "誤報",
 };
 
 const statusColors: Record<ThreatStatus, string> = {
@@ -178,7 +178,7 @@ export default function ThreatsPage() {
         const res = await fetch("/api/report");
         const data = await res.json();
         if (data.threats && data.threats.length > 0) {
-          // APIãã¼ã¿ã¨ãã¢ãã¼ã¿ãçµåï¼APIãã¼ã¿ãåã«è¡¨ç¤ºï¼
+          // APIデータとデモデータを結合（APIデータを先に表示）
           setThreats([...data.threats, ...demoThreats]);
         }
       } catch (err) {
@@ -239,29 +239,29 @@ export default function ThreatsPage() {
               Threat Intelligence Database
             </div>
             <h1 className="text-3xl sm:text-4xl font-bold mb-3">
-              èå¨ãã¼ã¿ãã¼ã¹
+              脅威データベース
             </h1>
             <p className="text-gray-400">
-              å½æ°ããéå ±ãããèå¨æå ±ããªã¢ã«ã¿ã¤ã ã§å±æ
+              国民から通報された脅威情報をリアルタイムで共有
             </p>
           </div>
 
           {/* Stats bar */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
             {[
-              { label: "ç·éå ±æ°", value: threats.length, color: "text-jcs-accent" },
+              { label: "総通報数", value: threats.length, color: "text-jcs-accent" },
               {
-                label: "ç¢ºèªæ¸ã¿",
+                label: "確認済み",
                 value: threats.filter((t) => t.status === "confirmed").length,
                 color: "text-jcs-green",
               },
               {
-                label: "åæä¸­",
+                label: "分析中",
                 value: threats.filter((t) => t.status === "analyzing" || t.status === "pending").length,
                 color: "text-yellow-400",
               },
               {
-                label: "å±éºåº¦:é«",
+                label: "危険度:高",
                 value: threats.filter(
                   (t) => t.severity === "critical" || t.severity === "high"
                 ).length,
@@ -282,7 +282,7 @@ export default function ThreatsPage() {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="èå¨ãæ¤ç´¢..."
+                placeholder="脅威を検索..."
                 className="w-full bg-jcs-card border border-jcs-border rounded-lg pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-jcs-accent transition-colors"
               />
             </div>
@@ -295,7 +295,7 @@ export default function ThreatsPage() {
                 }
                 className="bg-jcs-card border border-jcs-border rounded-lg pl-10 pr-8 py-3 text-sm focus:outline-none focus:border-jcs-accent transition-colors appearance-none cursor-pointer"
               >
-                <option value="all">ãã¹ã¦ã®ç¨®é¡</option>
+                <option value="all">すべての種類</option>
                 {Object.entries(typeLabels).map(([v, l]) => (
                   <option key={v} value={v}>
                     {l}
@@ -385,7 +385,7 @@ export default function ThreatsPage() {
                       )}
                       {threat.email_from && (
                         <div className="flex items-center gap-2 text-sm">
-                          <span className="text-gray-500">éä¿¡å:</span>
+                          <span className="text-gray-500">送信元:</span>
                           <code className="text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded text-xs">
                             {threat.email_from}
                           </code>
@@ -395,7 +395,7 @@ export default function ThreatsPage() {
                         <div className="bg-jcs-accent/5 border border-jcs-accent/20 rounded-lg p-4">
                           <div className="flex items-center gap-2 text-jcs-accent text-sm font-medium mb-2">
                             <Eye className="w-4 h-4" />
-                            AIåæçµæ
+                            AI分析結果
                           </div>
                           <p className="text-sm text-gray-300">
                             {threat.ai_analysis}
@@ -411,7 +411,7 @@ export default function ThreatsPage() {
             {filtered.length === 0 && (
               <div className="text-center py-20 text-gray-500">
                 <Search className="w-10 h-10 mx-auto mb-3 opacity-50" />
-                <p>è©²å½ããèå¨ãè¦ã¤ããã¾ãã</p>
+                <p>該当する脅威が見つかりません</p>
               </div>
             )}
           </div>
