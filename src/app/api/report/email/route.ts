@@ -71,7 +71,8 @@ export async function POST(request: NextRequest) {
     const description = descriptionParts.join("\n\n");
 
     // Supabaseに保存
-    const { data, error } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any)
       .from("threat_reports")
       .insert({
         threat_type: threatType,
