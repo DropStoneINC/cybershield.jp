@@ -1,14 +1,17 @@
 /**
- * Japan Cyber Shield - メール通報自動処理
+ * Japan Cyber Shield - メール通報自動処理 v2
  *
- * cybershield.jp@dropstone.co.jp に届いたメールを自動的にJCS APIに送信し、
- * 通報者に自動返信を送る Google Apps Script
+ * cybershield.jp@dropstone.co.jp (Google Group) 経由で
+ * csj.report@dropstone.co.jp に転送されたメールを自動処理
+ *
+ * フロー:
+ * 外部メール → Google Group → 本アカウント → Apps Script → JCS API → Supabase
  *
  * セットアップ:
  * 1. script.google.com で新規プロジェクト作成
  * 2. このコードを貼り付け
  * 3. スクリプトプロパティに API_SECRET を設定
- * 4. processNewEmails にトリガーを設定（5分間隔）
+ * 4. setup() を手動実行
  */
 
 // ===== 設定 =====
@@ -17,8 +20,10 @@ const CONFIG = {
   PROCESSED_LABEL: "JCS-処理済み",
   ERROR_LABEL: "JCS-エラー",
   SITE_URL: "https://cybershield-jp-drop-stone-ai.vercel.app",
+  GROUP_EMAIL: "cybershield.jp@dropstone.co.jp",
+  // Google Groupが付ける件名プレフィックスのパターン
+  SUBJECT_PREFIX_REGEX: /^\[Cyber Shield Japan\]\s*/i,
 };
-
 /**
  * メイン処理: 未処理のメールを検索して通報APIに送信
  * トリガーで5分ごとに実行
@@ -41,33 +46,56 @@ function processNewEmails() {
     errorLabel = GmailApp.createLabel(CONFIG.ERROR_LABEL);
   }
 
-  // 未処理の受信メールを検索（処理済みラベルがないもの）
-  const query = `in:inbox -label:${CONFIG.PROCESSED_LABEL} -label:${CONFIG.ERROR_LABEL}`;
-  const threads = GmailApp.search(query, 0, 20);
+  // 未処理メールを検索（inbox + spam両方、処理済みラベルを除外）
+  // Google Group転送メールがspamに振り分けられることがあるため
+  const queries = [
+    `in:inbox -label:${CONFIG.PROCESSED_LABEL} -label:${CONFIG.ERROR_LABEL}`,
+    `in:spam -label:${CONFIG.PROCESSED_LABEL} -label:${CONFIG.ERROR_LABEL} newer_than:1d`,
+  ];
 
-  if (threads.length === 0) {
+  let allThreads = [];
+  for (const query of queries) {
+    try {
+      const threads = GmailApp.search(query, 0, 20);
+      allThreads = allThreads.concat(threads);
+    } catch (e) {
+      Logger.log(`検索エラー (${query}): ${e.message}`);
+    }
+  }
+
+  if (allThreads.length === 0) {
     Logger.log("新しいメールはありません");
     return;
   }
 
-  Logger.log(`${threads.length} 件の未処理メールを発見`);
+  Logger.log(`${allThreads.length} 件の未処理メールを発見`);
 
-  for (const thread of threads) {
+  for (const thread of allThreads) {
     try {
       const messages = thread.getMessages();
-      // スレッドの最初のメッセージを処理
       const message = messages[0];
 
+      // 自分自身からの自動返信はスキップ
+      const myEmail = Session.getActiveUser().getEmail();
+      if (message.getFrom().includes(myEmail)) {
+        thread.addLabel(processedLabel);
+        Logger.log(`⏭️ 自分からのメールをスキップ: ${message.getSubject()}`);
+        continue;
+      }
+
       const emailData = parseEmail(message);
+      Logger.log(`📧 処理中: from=${emailData.from_email}, subject=${emailData.subject}`);
+      Logger.log(`   reporter=${emailData.reporter_email}, original_subject=${emailData.original_subject}`);
+
       const result = sendToApi(emailData, apiSecret);
 
       if (result.success) {
-        // 処理済みラベルを付与
         thread.addLabel(processedLabel);
-
-        // 自動返信を送信
+        // spamからinboxに移動（返信できるように）
+        if (thread.isInSpam && thread.isInSpam()) {
+          thread.moveToInbox();
+        }
         sendAutoReply(message, result.id, result.threat_type);
-
         Logger.log(`✅ 処理完了: ${emailData.subject} (ID: ${result.id})`);
       } else {
         thread.addLabel(errorLabel);
@@ -75,26 +103,61 @@ function processNewEmails() {
       }
     } catch (e) {
       thread.addLabel(errorLabel);
-      Logger.log(`❌ 処理エラー: ${e.message}`);
+      Logger.log(`❌ 処理エラー: ${e.message}\n${e.stack}`);
     }
   }
 }
 
 /**
  * メールを解析してAPI送信用データに変換
+ * Google Group転送メールの形式を考慮:
+ * - From: Google Groupのアドレスまたは元の送信者
+ * - Subject: [Cyber Shield Japan] プレフィックスが付く
+ * - Reply-To/X-Original-From: 元の送信者情報
  */
 function parseEmail(message) {
   const body = message.getPlainBody() || "";
   const from = message.getFrom();
   const subject = message.getSubject();
+  const replyTo = message.getReplyTo() || "";
 
   // 送信者名とメールアドレスを分離
   const fromMatch = from.match(/^(.+?)\s*<(.+?)>$/);
   const fromName = fromMatch ? fromMatch[1].trim().replace(/"/g, "") : "";
   const fromEmail = fromMatch ? fromMatch[2] : from;
 
-  // 転送メールの元の送信者を抽出
+  // Google Groupプレフィックスを除去してオリジナル件名を取得
+  const originalSubject = subject.replace(CONFIG.SUBJECT_PREFIX_REGEX, "");
+
+  // 通報者のメールアドレスを特定（優先順位）
+  // 1. Reply-To（Google Groupが元の送信者をここに設定することが多い）
+  // 2. 転送メールの元送信者（本文から抽出）
+  // 3. From（Google Groupアドレスの場合あり）
   const forwardedFrom = extractForwardedFrom(body);
+
+  let reporterEmail = fromEmail;
+  let reporterName = fromName;
+
+  // Reply-Toが設定されていてGroupアドレスでない場合
+  if (replyTo && !replyTo.includes(CONFIG.GROUP_EMAIL)) {
+    const replyMatch = replyTo.match(/^(.+?)\s*<(.+?)>$/);
+    if (replyMatch) {
+      reporterEmail = replyMatch[2];
+      reporterName = replyMatch[1].trim().replace(/"/g, "");
+    } else if (replyTo.includes("@")) {
+      reporterEmail = replyTo.trim();
+    }
+  }
+
+  // FromがGroupアドレスの場合、転送元から取得を試みる
+  if (fromEmail === CONFIG.GROUP_EMAIL && forwardedFrom) {
+    const fwdMatch = forwardedFrom.match(/<(.+?)>/);
+    if (fwdMatch) {
+      reporterEmail = fwdMatch[1];
+    } else if (forwardedFrom.includes("@")) {
+      reporterEmail = forwardedFrom.trim();
+    }
+  }
 
   // メール本文中のURLを抽出
   const urls = extractUrls(body);
@@ -103,9 +166,12 @@ function parseEmail(message) {
     from_email: fromEmail,
     from_name: fromName,
     subject: subject,
+    original_subject: originalSubject,
     body_text: body,
     received_at: message.getDate().toISOString(),
     forwarded_from: forwardedFrom,
+    reporter_email: reporterEmail,
+    reporter_name: reporterName,
     urls_found: urls,
   };
 }
@@ -146,21 +212,40 @@ function extractUrls(text) {
 
 /**
  * JCS APIに通報データを送信
+ * parseEmailの結果をそのまま送信（reporter_email, original_subject含む）
  */
 function sendToApi(emailData, apiSecret) {
+  const payload = {
+    from_email: emailData.from_email,
+    from_name: emailData.from_name,
+    subject: emailData.subject,
+    original_subject: emailData.original_subject,
+    body_text: emailData.body_text,
+    received_at: emailData.received_at,
+    forwarded_from: emailData.forwarded_from,
+    reporter_email: emailData.reporter_email,
+    reporter_name: emailData.reporter_name,
+    urls_found: emailData.urls_found,
+  };
+
+  Logger.log(`📤 API送信データ: reporter_email=${payload.reporter_email}, original_subject=${payload.original_subject}`);
+
   const options = {
     method: "post",
     contentType: "application/json",
     headers: {
       "x-api-key": apiSecret,
     },
-    payload: JSON.stringify(emailData),
+    payload: JSON.stringify(payload),
     muteHttpExceptions: true,
   };
 
   const response = UrlFetchApp.fetch(CONFIG.API_URL, options);
   const statusCode = response.getResponseCode();
-  const result = JSON.parse(response.getContentText());
+  const responseText = response.getContentText();
+  Logger.log(`📥 APIレスポンス: ${statusCode} ${responseText}`);
+
+  const result = JSON.parse(responseText);
 
   if (statusCode === 200 && result.success) {
     return result;
