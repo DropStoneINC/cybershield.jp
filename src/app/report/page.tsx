@@ -25,39 +25,39 @@ const threatTypeOptions: {
 }[] = [
   {
     value: "phishing_email",
-    label: "フィッシングメール",
+    label: "ãã£ãã·ã³ã°ã¡ã¼ã«",
     icon: Mail,
-    desc: "銀行・サービスを装った偽メール",
+    desc: "éè¡ã»ãµã¼ãã¹ãè£ã£ãå½ã¡ã¼ã«",
   },
   {
     value: "scam_sms",
-    label: "詐欺SMS",
+    label: "è©æ¬ºSMS",
     icon: Smartphone,
-    desc: "宅配・料金未払いなどの偽SMS",
+    desc: "å®éã»æéæªæããªã©ã®å½SMS",
   },
   {
     value: "fake_site",
-    label: "偽サイト",
+    label: "å½ãµã¤ã",
     icon: Globe,
-    desc: "偽のECサイト・ログインページ",
+    desc: "å½ã®ECãµã¤ãã»ã­ã°ã¤ã³ãã¼ã¸",
   },
   {
     value: "suspicious_url",
-    label: "不審なURL",
+    label: "ä¸å¯©ãªURL",
     icon: Link2,
-    desc: "怪しいリンク・リダイレクト",
+    desc: "æªãããªã³ã¯ã»ãªãã¤ã¬ã¯ã",
   },
   {
     value: "malware",
-    label: "マルウェア",
+    label: "ãã«ã¦ã§ã¢",
     icon: Bug,
-    desc: "不審な添付ファイル・ダウンロード",
+    desc: "ä¸å¯©ãªæ·»ä»ãã¡ã¤ã«ã»ãã¦ã³ã­ã¼ã",
   },
   {
     value: "other",
-    label: "その他",
+    label: "ãã®ä»",
     icon: HelpCircle,
-    desc: "上記に該当しない脅威",
+    desc: "ä¸è¨ã«è©²å½ããªãèå¨",
   },
 ];
 
@@ -80,12 +80,27 @@ export default function ReportPage() {
     if (!selectedType) return;
     setSubmitting(true);
 
-    // In production, this would POST to Supabase
-    // For now, simulate the submission
-    await new Promise((r) => setTimeout(r, 1500));
+    try {
+      const res = await fetch("/api/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          threat_type: selectedType,
+          ...form,
+        }),
+      });
 
-    setSubmitted(true);
-    setSubmitting(false);
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "送信に失敗しました");
+      }
+
+      setSubmitted(true);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "送信中にエラーが発生しました");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -97,12 +112,12 @@ export default function ReportPage() {
             <div className="w-20 h-20 rounded-full bg-jcs-green/20 flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="w-10 h-10 text-jcs-green" />
             </div>
-            <h1 className="text-2xl font-bold mb-3">通報を受け付けました</h1>
+            <h1 className="text-2xl font-bold mb-3">éå ±ãåãä»ãã¾ãã</h1>
             <p className="text-gray-400 mb-2">
-              ご協力ありがとうございます。AI分析を開始します。
+              ãååãããã¨ããããã¾ããAIåæãéå§ãã¾ãã
             </p>
             <p className="text-sm text-gray-500 mb-8">
-              分析結果は脅威データベースに反映されます。
+              åæçµæã¯èå¨ãã¼ã¿ãã¼ã¹ã«åæ ããã¾ãã
             </p>
             <div className="flex gap-4 justify-center">
               <button
@@ -121,10 +136,10 @@ export default function ReportPage() {
                 }}
                 className="btn-primary"
               >
-                別の脅威を通報
+                å¥ã®èå¨ãéå ±
               </button>
               <a href="/threats" className="btn-secondary">
-                脅威DBを見る
+                èå¨DBãè¦ã
               </a>
             </div>
           </div>
@@ -146,10 +161,10 @@ export default function ReportPage() {
               Citizen Sensor Layer
             </div>
             <h1 className="text-3xl sm:text-4xl font-bold mb-3">
-              サイバー脅威を通報
+              ãµã¤ãã¼èå¨ãéå ±
             </h1>
             <p className="text-gray-400">
-              あなたの通報が日本のサイバー防衛に貢献します
+              ããªãã®éå ±ãæ¥æ¬ã®ãµã¤ãã¼é²è¡ã«è²¢ç®ãã¾ã
             </p>
           </div>
 
@@ -159,7 +174,7 @@ export default function ReportPage() {
               <span className="w-7 h-7 rounded-full bg-jcs-accent/20 text-jcs-accent text-sm flex items-center justify-center font-bold">
                 1
               </span>
-              脅威の種類を選択
+              èå¨ã®ç¨®é¡ãé¸æ
             </h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {threatTypeOptions.map((t) => (
@@ -194,13 +209,13 @@ export default function ReportPage() {
                   <span className="w-7 h-7 rounded-full bg-jcs-accent/20 text-jcs-accent text-sm flex items-center justify-center font-bold">
                     2
                   </span>
-                  詳細情報を入力
+                  è©³ç´°æå ±ãå¥å
                 </h2>
                 <div className="glass-card p-6 space-y-5">
                   {/* Title */}
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                      タイトル <span className="text-red-400">*</span>
+                      ã¿ã¤ãã« <span className="text-red-400">*</span>
                     </label>
                     <input
                       required
@@ -208,7 +223,7 @@ export default function ReportPage() {
                       onChange={(e) =>
                         setForm((f) => ({ ...f, title: e.target.value }))
                       }
-                      placeholder="例: Amazonを装ったフィッシングメール"
+                      placeholder="ä¾: Amazonãè£ã£ããã£ãã·ã³ã°ã¡ã¼ã«"
                       className="w-full bg-jcs-dark border border-jcs-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-jcs-accent transition-colors"
                     />
                   </div>
@@ -219,7 +234,7 @@ export default function ReportPage() {
                     selectedType === "phishing_email") && (
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                        不審なURL
+                        ä¸å¯©ãªURL
                       </label>
                       <input
                         value={form.url}
@@ -238,7 +253,7 @@ export default function ReportPage() {
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                          送信元アドレス
+                          éä¿¡åã¢ãã¬ã¹
                         </label>
                         <input
                           value={form.email_from}
@@ -254,7 +269,7 @@ export default function ReportPage() {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                          件名
+                          ä»¶å
                         </label>
                         <input
                           value={form.email_subject}
@@ -264,7 +279,7 @@ export default function ReportPage() {
                               email_subject: e.target.value,
                             }))
                           }
-                          placeholder="メールの件名"
+                          placeholder="ã¡ã¼ã«ã®ä»¶å"
                           className="w-full bg-jcs-dark border border-jcs-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-jcs-accent transition-colors"
                         />
                       </div>
@@ -274,7 +289,7 @@ export default function ReportPage() {
                   {/* Description */}
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                      詳細説明 <span className="text-red-400">*</span>
+                      è©³ç´°èª¬æ <span className="text-red-400">*</span>
                     </label>
                     <textarea
                       required
@@ -283,7 +298,7 @@ export default function ReportPage() {
                       onChange={(e) =>
                         setForm((f) => ({ ...f, description: e.target.value }))
                       }
-                      placeholder="受け取った内容、状況、気づいた点など、できるだけ詳しく記載してください。"
+                      placeholder="åãåã£ãåå®¹ãç¶æ³ãæ°ã¥ããç¹ãªã©ãã§ããã ãè©³ããè¨è¼ãã¦ãã ããã"
                       className="w-full bg-jcs-dark border border-jcs-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-jcs-accent transition-colors resize-y"
                     />
                   </div>
@@ -296,16 +311,16 @@ export default function ReportPage() {
                   <span className="w-7 h-7 rounded-full bg-jcs-accent/20 text-jcs-accent text-sm flex items-center justify-center font-bold">
                     3
                   </span>
-                  通報者情報
+                  éå ±èæå ±
                   <span className="text-xs text-gray-500 font-normal">
-                    （任意）
+                    ï¼ä»»æï¼
                   </span>
                 </h2>
                 <div className="glass-card p-6">
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                        お名前
+                        ãåå
                       </label>
                       <input
                         value={form.reporter_name}
@@ -315,13 +330,13 @@ export default function ReportPage() {
                             reporter_name: e.target.value,
                           }))
                         }
-                        placeholder="匿名でも通報できます"
+                        placeholder="å¿åã§ãéå ±ã§ãã¾ã"
                         className="w-full bg-jcs-dark border border-jcs-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-jcs-accent transition-colors"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                        メールアドレス
+                        ã¡ã¼ã«ã¢ãã¬ã¹
                       </label>
                       <input
                         type="email"
@@ -332,7 +347,7 @@ export default function ReportPage() {
                             reporter_email: e.target.value,
                           }))
                         }
-                        placeholder="結果通知を希望する場合"
+                        placeholder="çµæéç¥ãå¸æããå ´å"
                         className="w-full bg-jcs-dark border border-jcs-border rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-jcs-accent transition-colors"
                       />
                     </div>
@@ -350,17 +365,17 @@ export default function ReportPage() {
                   {submitting ? (
                     <>
                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      送信中...
+                      éä¿¡ä¸­...
                     </>
                   ) : (
                     <>
                       <Send className="w-5 h-5" />
-                      脅威を通報する
+                      èå¨ãéå ±ãã
                     </>
                   )}
                 </button>
                 <p className="text-xs text-gray-500 mt-3">
-                  通報内容はAIで自動分析され、脅威データベースに登録されます。
+                  éå ±åå®¹ã¯AIã§èªååæãããèå¨ãã¼ã¿ãã¼ã¹ã«ç»é²ããã¾ãã
                 </p>
               </div>
             </form>
